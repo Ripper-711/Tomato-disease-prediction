@@ -68,24 +68,24 @@ def preprocess_image(image_data):
     # Remove data URL prefix if present
     if ',' in image_data:
         image_data = image_data.split(',')[1]
-    
+
     # Decode base64
     image_bytes = base64.b64decode(image_data)
     image = Image.open(io.BytesIO(image_bytes))
-    
+
     # Convert to RGB if needed
     if image.mode != 'RGB':
         image = image.convert('RGB')
-    
+
     # Resize to 224x224 (adjust if your model expects different size)
     image = image.resize((224, 224))
-    
+
     # Convert to numpy array and normalize
     img_array = np.array(image) / 255.0
-    
+
     # Add batch dimension: (1, 224, 224, 3)
     img_array = np.expand_dims(img_array, axis=0)
-    
+
     return img_array
 
 @app.route('/predict', methods=['POST'])
@@ -96,20 +96,20 @@ def predict():
     """
     try:
         data = request.get_json()
-        
+
         if 'image' not in data:
             return jsonify({'error': 'No image provided'}), 400
-        
+
         # Preprocess image
         img_array = preprocess_image(data['image'])
-        
+
         # Make prediction
         prediction = model.predict(img_array, verbose=0)
-        
+
         # Get prediction results
         predicted_class_idx = np.argmax(prediction[0])
         confidence = float(prediction[0][predicted_class_idx] * 100)
-        
+
         # Get all predictions
         all_predictions = [
             {
@@ -119,14 +119,14 @@ def predict():
             for i in range(len(TOMATO_DISEASES))
         ]
         all_predictions.sort(key=lambda x: x['confidence'], reverse=True)
-        
+
         return jsonify({
             'success': True,
             'disease': TOMATO_DISEASES[predicted_class_idx],
             'confidence': round(confidence, 2),
             'allPredictions': all_predictions
         })
-        
+
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -159,20 +159,20 @@ def debug_predict():
     """
     try:
         data = request.get_json()
-        
+
         if 'image' not in data:
             return jsonify({'error': 'No image provided'}), 400
-        
+
         # Preprocess image
         img_array = preprocess_image(data['image'])
-        
+
         # Make prediction
         prediction = model.predict(img_array, verbose=0)
-        
+
         # Return raw predictions with class mapping
         raw_predictions = prediction[0].tolist()
         predicted_class_idx = int(np.argmax(prediction[0]))
-        
+
         return jsonify({
             'raw_predictions': raw_predictions,
             'predicted_index': predicted_class_idx,
@@ -200,7 +200,7 @@ def debug_predict():
                 reverse=True
             )
         })
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -216,4 +216,3 @@ if __name__ == '__main__':
     print("="*50 + "\n")
 
     app.run(host="0.0.0.0", port=port, debug=False)
-
