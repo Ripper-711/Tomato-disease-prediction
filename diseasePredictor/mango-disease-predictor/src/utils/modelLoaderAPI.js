@@ -4,7 +4,9 @@
  * instead of converting to TensorFlow.js format
  */
 
-const API_URL = 'http://localhost:5000/predict'; // Update if your backend is on different port
+// Production: set VITE_API_BASE_URL on Render (e.g. https://disease-predictor-app-ghrb.onrender.com) — no trailing slash
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '');
+const API_URL = `${API_BASE}/predict`;
 
 /**
  * Predict disease from image using backend API
@@ -49,7 +51,7 @@ export const predictDiseaseAPI = async (imageDataUrl) => {
  */
 export const checkAPIHealth = async () => {
   try {
-    const response = await fetch('http://localhost:5000/health');
+    const response = await fetch(`${API_BASE}/health`);
     const data = await response.json();
     return data.status === 'ok';
   } catch (error) {
