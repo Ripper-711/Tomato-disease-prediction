@@ -1,8 +1,8 @@
 flask==3.0.0
 flask-cors==4.0.0
 gunicorn>=22.0.0
-# CPU build only (Render has no GPU); pin version for reliable manylinux wheels on Python 3.11
-
+# Standard TF wheel on Linux includes CPU; pin for Python 3.11 + stable manylinux builds
+tensorflow==2.15.1
 pillow>=9.0.0
 # TF 2.15 + Keras expect NumPy 1.x; NumPy 2 breaks many installs
 numpy>=1.23.5,<2.0
