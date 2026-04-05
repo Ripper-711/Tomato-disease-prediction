@@ -3,11 +3,21 @@ Backend API Example - Flask server to serve predictions using .h5 model directly
 This allows you to use the .h5 model without conversion
 
 Install dependencies:
-    pip install flask flask-cors tensorflow pillow numpy
+    pip install -r requirements.txt
 
-Run:
+Run locally:
     python backend_api_example.py
+
+Run on Render (dashboard or Procfile):
+    gunicorn backend_api_example:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1
+
+Env:
+    MODEL_PATH — path to .h5 file (default: public/best_HCNN.h5)
+    PORT — only used when running this file directly (Render sets PORT for gunicorn)
 """
+
+import os
+from pathlib import Path
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -21,9 +31,16 @@ import base64
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend requests
 
-# Load the model once at startup
+_model_path = os.environ.get("MODEL_PATH", "public/best_HCNN.h5")
+_model_path = Path(_model_path)
+if not _model_path.is_file():
+    raise FileNotFoundError(
+        f"Model file not found: {_model_path.resolve()}. "
+        "Set MODEL_PATH or add the .h5 under public/."
+    )
+
 print("Loading model...")
-model = keras.models.load_model('public/best_HCNN.h5')
+model = keras.models.load_model(str(_model_path))
 print("Model loaded successfully!")
 print(f"Model input shape: {model.input_shape}")
 
@@ -188,14 +205,15 @@ def debug_predict():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
+    port = int(os.environ.get("PORT", "5000"))
     print("\n" + "="*50)
     print("Tomato Disease Prediction API")
     print("="*50)
     print(f"Model input shape: {model.input_shape}")
-    print("\nStarting server on http://localhost:5000")
-    print("API endpoint: http://localhost:5000/predict")
+    print(f"\nStarting server on http://0.0.0.0:{port}")
+    print(f"API endpoint: http://localhost:{port}/predict")
     print("\nPress Ctrl+C to stop")
     print("="*50 + "\n")
-    
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+    app.run(host="0.0.0.0", port=port, debug=False)
 
