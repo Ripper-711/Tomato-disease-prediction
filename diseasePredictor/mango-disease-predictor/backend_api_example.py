@@ -22,7 +22,7 @@ from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import tensorflow as tf
-from tensorflow import keras
+import keras
 import numpy as np
 from PIL import Image
 import io
