@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { predictDiseaseAPI, checkAPIHealth } from '../utils/modelLoaderAPI';
+import { predictDiseaseAPI, checkAPIHealth, wakeUpBackend } from '../utils/modelLoaderAPI';
 
 const Predict = ({ language, uploadedImage, onBack, onNewScan }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -223,6 +223,7 @@ const Predict = ({ language, uploadedImage, onBack, onNewScan }) => {
 
   useEffect(() => {
     const checkAPI = async () => {
+      await wakeUpBackend();
       const ok = await checkAPIHealth();
       setApiAvailable(ok);
       if (!ok) setError('Backend API is not running.\n\nStart it with: python backend_api_example.py');

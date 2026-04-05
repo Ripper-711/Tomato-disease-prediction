@@ -29,7 +29,7 @@ import io
 import base64
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend requests
+CORS(app, origins=["https://disease-predictor-app-1.onrender.com"])
 
 _model_path = os.environ.get("MODEL_PATH", "public/best_HCNN.h5")
 _model_path = Path(_model_path)

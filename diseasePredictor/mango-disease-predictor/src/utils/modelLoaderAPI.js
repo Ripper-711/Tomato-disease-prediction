@@ -9,6 +9,18 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').
 const API_URL = `${API_BASE}/predict`;
 
 /**
+ * Wake Render free-tier backend after sleep (cold start can take 30–60s).
+ * Call on app load before relying on /predict.
+ */
+export const wakeUpBackend = async () => {
+  try {
+    await fetch(`${API_BASE}/health`);
+  } catch {
+    /* ignore — follow-up health check / predict will surface errors */
+  }
+};
+
+/**
  * Predict disease from image using backend API
  * @param {string} imageDataUrl - Base64 encoded image data URL
  * @returns {Promise<{disease: string, confidence: number, allPredictions: Array}>}
