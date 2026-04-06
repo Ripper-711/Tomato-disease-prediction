@@ -6,6 +6,7 @@ const Predict = ({ language, uploadedImage, onBack, onNewScan }) => {
   const [prediction, setPrediction] = useState(null);
   const [error, setError] = useState(null);
   const [apiAvailable, setApiAvailable] = useState(null);
+  const [isWakingUp, setIsWakingUp] = useState(true);
   const [activeSection, setActiveSection] = useState('symptoms');
 
   const texts = {
@@ -13,6 +14,8 @@ const Predict = ({ language, uploadedImage, onBack, onNewScan }) => {
       title: "Disease Analysis",
       analyzing: "Analyzing your plant...",
       identifying: "Running AI model",
+      startingServer: "Starting server...",
+      serverWakeHint: "Free server takes 30–60s to wake up. Please wait...",
       result: "Detected Condition",
       confidence: "AI Confidence",
       overview: "Overview",
@@ -38,6 +41,8 @@ const Predict = ({ language, uploadedImage, onBack, onNewScan }) => {
       title: "रोग विश्लेषण",
       analyzing: "आपली वनस्पती तपासत आहे...",
       identifying: "AI मॉडेल चालवत आहे",
+      startingServer: "सर्व्हर सुरू होत आहे...",
+      serverWakeHint: "मोफत सर्व्हरला सुरू होण्यास ३०–६० सेकंद लागू शकतात. कृपया प्रतीक्षा करा...",
       result: "आढळलेली स्थिती",
       confidence: "AI आत्मविश्वास",
       overview: "संक्षिप्त माहिती",
@@ -223,16 +228,21 @@ const Predict = ({ language, uploadedImage, onBack, onNewScan }) => {
 
   useEffect(() => {
     const checkAPI = async () => {
-      await wakeUpBackend();
-      const ok = await checkAPIHealth();
-      setApiAvailable(ok);
-      if (!ok) setError('Backend API is not running.\n\nStart it with: python backend_api_example.py');
+      setIsWakingUp(true);
+      try {
+        await wakeUpBackend();
+        const ok = await checkAPIHealth();
+        setApiAvailable(ok);
+        if (!ok) setError('Backend API is not running.\n\nStart it with: python backend_api_example.py');
+      } finally {
+        setIsWakingUp(false);
+      }
     };
     checkAPI();
   }, []);
 
   const performPrediction = async () => {
-    if (!uploadedImage || apiAvailable === false) return;
+    if (!uploadedImage || apiAvailable === false || isWakingUp) return;
     setIsLoading(true);
     setPrediction(null);
     setError(null);
@@ -267,10 +277,17 @@ const Predict = ({ language, uploadedImage, onBack, onNewScan }) => {
   };
 
   useEffect(() => {
-    if (uploadedImage && !prediction && !isLoading && !error && apiAvailable !== false) {
+    if (
+      uploadedImage &&
+      !prediction &&
+      !isLoading &&
+      !error &&
+      apiAvailable !== false &&
+      !isWakingUp
+    ) {
       performPrediction();
     }
-  }, [uploadedImage, apiAvailable]);
+  }, [uploadedImage, apiAvailable, isWakingUp]);
 
   useEffect(() => {
     if (prediction) setActiveSection('symptoms');
@@ -545,18 +562,18 @@ const Predict = ({ language, uploadedImage, onBack, onNewScan }) => {
           </div>
         )}
 
-        {/* Loading */}
-        {isLoading && (
+        {/* Loading / waking hosted API */}
+        {(isLoading || isWakingUp) && (
           <div className="pp2-loading">
             <div className="pp2-loader-ring" />
             <div className="pp2-loader-dots"><span /><span /><span /></div>
-            <p className="pp2-loading-h">{t.analyzing}</p>
-            <p className="pp2-loading-s">{t.identifying}</p>
+            <p className="pp2-loading-h">{isWakingUp ? t.startingServer : t.analyzing}</p>
+            <p className="pp2-loading-s">{isWakingUp ? t.serverWakeHint : t.identifying}</p>
           </div>
         )}
 
         {/* Result */}
-        {prediction && !isLoading && (() => {
+        {prediction && !isLoading && !isWakingUp && (() => {
           const data = prediction.data;
           const name = data.diseaseName?.[language] || data.diseaseName?.en || prediction.disease.replace(/Tomato___/g, '').replace(/_/g, ' ');
           const type = data.type?.[language] || data.type?.en;

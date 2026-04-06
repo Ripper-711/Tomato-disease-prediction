@@ -21,6 +21,26 @@ const API_URL = `${API_BASE}/predict`;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const compressImage = (dataUrl, maxWidth = 224, quality = 0.7) => (
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = maxWidth;
+      canvas.height = maxWidth;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(dataUrl);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, maxWidth, maxWidth);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  })
+);
+
 /**
  * Wait until /health returns ok (Render free tier cold start often needs 30–90s).
  * Stops after maxWaitMs so the UI can still show an error.
@@ -49,7 +69,8 @@ export const wakeUpBackend = async (maxWaitMs = 120000, intervalMs = 2500) => {
  */
 export const predictDiseaseAPI = async (imageDataUrl) => {
   const maxAttempts = 3;
-  const body = JSON.stringify({ image: imageDataUrl });
+  const compressedImageDataUrl = await compressImage(imageDataUrl);
+  const body = JSON.stringify({ image: compressedImageDataUrl });
   let lastError;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
