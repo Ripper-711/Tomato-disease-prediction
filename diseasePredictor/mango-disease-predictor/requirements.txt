@@ -15,6 +15,7 @@ h5py==3.11.0
 idna==3.7
 itsdangerous==2.2.0
 Jinja2==3.1.3
+keras==3.3.3
 libclang==18.1.1
 Markdown==3.6
 markdown-it-py==3.0.0
@@ -36,7 +37,6 @@ six==1.16.0
 tensorboard==2.16.2
 tensorboard-data-server==0.7.2
 tensorflow==2.16.2
-tf-keras==2.16.0  # <-- ADDED THIS FOR YOUR .H5 MODEL FIX
 termcolor==2.4.0
 typing_extensions==4.11.0
 urllib3==2.2.1

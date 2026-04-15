@@ -106,6 +106,17 @@ def preprocess_image(image_data):
 
     return img_array
 
+# --- THIS IS THE ONLY NEW BLOCK ADDED ---
+@app.route('/', methods=['GET'])
+def home():
+    """Simple root endpoint to prevent 404 errors on the home page"""
+    return jsonify({
+        'status': 'success',
+        'message': 'Tomato Disease Prediction API is running!',
+        'available_endpoints': ['/predict', '/health', '/debug/classes', '/debug/predict']
+    })
+# ----------------------------------------
+
 @app.route('/predict', methods=['POST'])
 def predict():
     """

@@ -1,0 +1,24 @@
+# 1. Use a lightweight Python base image
+FROM python:3.10-slim
+
+# 2. Set the working directory inside the container
+WORKDIR /app
+
+# 3. Copy only the requirements first
+COPY backend_requirements.txt .
+
+# 4. Install the Python dependencies
+RUN pip install --no-cache-dir -r backend_requirements.txt
+
+# 5. Copy the rest of your backend code
+COPY . .
+
+# 6. CRITICAL: Set the legacy Keras environment variable
+ENV TF_USE_LEGACY_KERAS=1
+ENV PORT=5000
+
+# 7. Open port 5000
+EXPOSE 5000
+
+# 8. Start the server using Gunicorn
+CMD ["gunicorn", "backend_api_example:app", "--bind", "0.0.0.0:5000", "--timeout", "300", "--workers", "1"]
