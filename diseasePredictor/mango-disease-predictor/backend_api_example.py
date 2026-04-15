@@ -32,10 +32,7 @@ import base64
 app = Flask(__name__)
 # Origins that may call this API (browser Origin header). 502s from the proxy carry no CORS headers;
 # fixing timeouts/cold start avoids that. Override on Render: CORS_ORIGINS=https://your-frontend.onrender.com
-_default_cors = (
-    "https://disease-predictor-app-1.onrender.com,"
-    "http://localhost:5173,http://127.0.0.1:5173"
-)
+_default_cors = "*"
 _cors_origins = [
     o.strip()
     for o in os.environ.get("CORS_ORIGINS", _default_cors).split(",")
